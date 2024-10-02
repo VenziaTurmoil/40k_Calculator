@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 import GraphBuilder
 import layout as lt
 
-external_stylesheets = [dbc.themes.DARKLY]
+external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div([
@@ -13,9 +13,6 @@ app.layout = html.Div([
     lt.menu,
     lt.graph_basic
 ])
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
