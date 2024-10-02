@@ -7,8 +7,8 @@ import json
 import pandas as pd
 
 @callback(
-    Output('graph', 'figure'),
-    Input('WA', 'value')
+    Output('graph-basic-fig', 'figure'),
+    Input('graph-basic-input-WA', 'value')
 )
 def simpleGraph(value):
     w = Weapon(1, 3, value, 0, 1)

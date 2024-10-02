@@ -1,16 +1,21 @@
-from dash import Dash, html, dcc, callback, Output, Input
+from dash import Dash, html, dcc, ctx, callback, Output, Input, State
 import plotly.express as px
-import pandas as pd
+import dash_bootstrap_components as dbc
 
-import Graphs
+import GraphBuilder
+import layout as lt
 
-app = Dash()
+external_stylesheets = [dbc.themes.DARKLY]
+app = Dash(__name__, external_stylesheets=external_stylesheets)
 
-app.layout = html.Div(children=[
-    html.H1(children='Simple Graph', style={'textAlign':'center'}),
-    dcc.Graph(id='graph'),
-    dcc.Slider(1, 12, 1, value=4, id='WA')
+app.layout = html.Div([
+    lt.title,
+    lt.menu,
+    lt.graph_basic
 ])
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
