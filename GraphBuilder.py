@@ -19,61 +19,23 @@ import pandas as pd
     Input('graph-basic-input-radio', 'value')
 )
 def simpleGraph(A, Sk, S, AP, D, T, Sv, W, radio):
+    r = int(radio)
+    names = ['Attacks', 'Weapon Skill', 'Strength', 'Armor Penetration',
+             'Damage', 'Toughness', 'Save', 'Wounds']
+    stats = [A, Sk, S, AP, D, T, Sv, W]
+    ranges = [range(1, 10), range(2, 7), range(1, 15), range(0, 5),
+              range(1, 9), range(1, 13), range(1, 8), range(1, 7)]
+
+    w = []
+    t = []
+    for i in ranges[r]:
+        stats[r] = i
+        w.append(Weapon(stats[0], stats[1], stats[2], stats[3], stats[4]))
+        t.append(Target(stats[5], stats[6], stats[7], 0))
+    
     df = pd.DataFrame()
-    match radio:
-        case 'A':
-            w = [Weapon(i, Sk, S, AP, D) for i in range(1, 10)]
-            t = Target(T, Sv, W, 0)
-            df['Attacks'] = range(1, 10)
-            df['AVG Damage'] = [i.sequence(t) for i in w]
-            return px.line(df, x='Attacks', y='AVG Damage', markers=True)
-        case 'Sk':
-            w = [Weapon(A, i, S, AP, D) for i in range(2, 7)]
-            t = Target(T, Sv, W, 0)
-            df['Weapon Skill'] = range(2, 7)
-            df['AVG Damage'] = [i.sequence(t) for i in w]
-            return px.line(df, x='Weapon Skill', y='AVG Damage', markers=True)
-        case 'S':
-            w = [Weapon(A, Sk, i, AP, D) for i in range(1, 15)]
-            t = Target(T, Sv, W, 0)
-            df['Strength'] = range(1, 15)
-            df['AVG Damage'] = [i.sequence(t) for i in w]
-            return px.line(df, x='Strength', y='AVG Damage', markers=True)
-        case 'AP':
-            w = [Weapon(A, Sk, S, i, D) for i in range(0, 5)]
-            t = Target(T, Sv, W, 0)
-            df['Armor Penetration'] = range(0, 5)
-            df['AVG Damage'] = [i.sequence(t) for i in w]
-            return px.line(df, x='Armor Penetration', y='AVG Damage', markers=True)
-        case 'D':
-            w = [Weapon(A, Sk, S, Sv, i) for i in range(1, 9)]
-            t = Target(T, Sv, W, 0)
-            df['Damage'] = range(1, 9)
-            df['AVG Damage'] = [i.sequence(t) for i in w]
-            return px.line(df, x='Damage', y='AVG Damage', markers=True)
-        case 'T':
-            w = Weapon(A, Sk, S, AP, D)
-            t = [Target(i, Sv, W, 0) for i in range(1, 13)]
-            df['Toughness'] = range(1, 13)
-            df['AVG Damage'] = [w.sequence(i) for i in t]
-            return px.line(df, x='Toughness', y='AVG Damage', markers=True)
-        case 'Sv':
-            w = Weapon(A, Sk, S, AP, D)
-            t = [Target(T, i, W, 0) for i in range(1, 8)]
-            df['Save'] = range(1, 8)
-            df['AVG Damage'] = [w.sequence(i) for i in t]
-            return px.line(df, x='Save', y='AVG Damage', markers=True)
-        case 'W':
-            w = Weapon(A, Sk, S, AP, D)
-            t = [Target(T, Sv, i, 0) for i in range(1, 7)]
-            df['Wounds'] = range(1, 7)
-            df['AVG Damage'] = [w.sequence(i) for i in t]
-            return px.line(df, x='Wounds', y='AVG Damage', markers=True)
-        case 'Sv':
-            w = Weapon(A, Sk, S, AP, D)
-            t = [Target(T, i, W, 0) for i in range(1, 7)]
-            df['Toughness'] = range(1, 13)
-            df['AVG Damage'] = [w.sequence(i) for i in t]
-            return px.line(df, x='Toughness', y='AVG Damage', markers=True)
-        case _:
-            raise ValueError("Bad value in radio button")
+    df[names[r]] = ranges[r]
+    df['AVG Damage'] = [w[i].sequence(t[i]) for i in range(len(w))]
+    print(df)
+        
+    return px.line(df, x=names[r], y='AVG Damage', markers=True)

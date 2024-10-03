@@ -87,16 +87,16 @@ graph_basic = dbc.Collapse([
             html.H3('Column to Freeze'),
             dcc.RadioItems(
                 options=[
-                    {'label': 'Attacks', 'value': 'A'},
-                    {'label': 'Weapon Skill', 'value': 'Sk'},    
-                    {'label': 'Strength', 'value': 'S'},    
-                    {'label': 'Armor Penetration', 'value': 'AP'},    
-                    {'label': 'Damage', 'value': 'D'},    
-                    {'label': 'Toughness', 'value': 'T'},    
-                    {'label': 'Save', 'value': 'Sv'},    
-                    {'label': 'Wounds', 'value': 'W'} 
+                    {'label': 'Attacks', 'value': '0'},
+                    {'label': 'Weapon Skill', 'value': '1'},    
+                    {'label': 'Strength', 'value': '2'},    
+                    {'label': 'Armor Penetration', 'value': '3'},    
+                    {'label': 'Damage', 'value': '4'},    
+                    {'label': 'Toughness', 'value': '5'},    
+                    {'label': 'Save', 'value': '6'},    
+                    {'label': 'Wounds', 'value': '7'} 
                 ], 
-                value='A',
+                value='5',
                 id='graph-basic-input-radio'
             )
         ])
