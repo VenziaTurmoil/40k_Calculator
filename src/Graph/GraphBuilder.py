@@ -36,6 +36,5 @@ def simpleGraph(A, Sk, S, AP, D, T, Sv, W, radio):
     df = pd.DataFrame()
     df[names[r]] = ranges[r]
     df['AVG Damage'] = [w[i].sequence(t[i]) for i in range(len(w))]
-    print(df)
         
     return px.line(df, x=names[r], y='AVG Damage', markers=True)
