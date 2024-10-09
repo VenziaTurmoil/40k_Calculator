@@ -1,4 +1,7 @@
 import numpy as np
+import os
+
+directory = os.path.dirname(__file__)
 
 def r(n=6):
     return np.random.randint(1,n+1)
