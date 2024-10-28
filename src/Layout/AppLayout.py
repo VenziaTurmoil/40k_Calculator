@@ -1,8 +1,8 @@
 from dash import Dash, html, dcc, ctx, callback, Output, Input, State
 import dash_bootstrap_components as dbc
-from Layout.abstractLayout import AbstractLayout
-from Layout.titleLayout import TitleLayout
-from Layout.menuLayout import MenuLayout
+from Layout.AbstractLayout import AbstractLayout
+from Layout.TitleLayout import TitleLayout
+from Layout.MenuLayout import MenuLayout
 from Layout.BaseGraphLayout import BaseGraphLayout
 
 class AppLayout(AbstractLayout):

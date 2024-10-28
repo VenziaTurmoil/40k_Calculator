@@ -1,6 +1,6 @@
 from dash import html
 
-from Layout.abstractLayout import AbstractLayout
+from Layout.AbstractLayout import AbstractLayout
 
 class TitleLayout(AbstractLayout):
     

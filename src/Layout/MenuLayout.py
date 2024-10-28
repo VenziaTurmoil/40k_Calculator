@@ -1,6 +1,6 @@
 from dash import html, callback, Output, Input, State
 import dash_bootstrap_components as dbc
-from Layout.abstractLayout import AbstractLayout
+from Layout.AbstractLayout import AbstractLayout
 
 class MenuLayout(AbstractLayout):
     
@@ -23,13 +23,13 @@ class MenuLayout(AbstractLayout):
                             className="card-text",
                         ),
                         dbc.Button("Go to Basic Graph", color="primary",
-                                   id = 'graph-basic-btn'),
+                                   id = 'menu-simple-graph-btn'),
                     ]),
                 ], style={'width': '18rem'}),
                 id="menu-collapse",
                 is_open=False,
             ),
-        ])
+        ], id='menu-navigation')
     
     def buildCallbacks(self):
         
