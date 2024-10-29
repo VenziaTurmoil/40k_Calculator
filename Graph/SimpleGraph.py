@@ -2,6 +2,7 @@ from dash import html, dcc, callback, Output, Input, State
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
+import copy
 from Layout.AbstractLayout import AbstractLayout
 from Model.Weapon import Weapon, options_list
 from Model.Target import Target
@@ -24,6 +25,8 @@ class SimpleGraph(AbstractLayout):
             'W' :  { 'min':1, 'max':12, 'value':3, 'description':'Wounds' },
         }
         self.graphValues = self.weaponValues | self.targetValues
+        self.currentLine = {'axis': None, 'column': None, 'range': None}
+        self.savedLines = []
 
     def buildLayout(self):
 
@@ -52,7 +55,11 @@ class SimpleGraph(AbstractLayout):
                                 value = target['value'],
                                 id='simple-graph-input-{}'.format(key)
                             )
-                        ]) for key, target in self.targetValues.items()]
+                        ]) for key, target in self.targetValues.items()] +
+                        [dbc.Button("Save Graph", color="primary",
+                                   id = 'simple-graph-btn-save'),
+                        dbc.Button("Clear Graph", color="danger",
+                                   id = 'simple-graph-btn-clear'),]
                 ),
                 dbc.Col([
                     html.H3('x-ordinate'),
@@ -105,11 +112,34 @@ class SimpleGraph(AbstractLayout):
                 w.append(Weapon(stats['A'], stats['Sk'], stats['S'], stats['AP'], stats['D'], options))
                 t.append(Target(stats['T'], stats['Sv'], stats['W'], 0))
 
-            df = pd.DataFrame()
-            df[self.graphValues[radio]['description']] = r
-            df['AVG Damage'] = [w[i].sequence(t[i]) for i in range(len(w))]
+            self.currentLine['axis'] = self.graphValues[radio]['description']
+            self.currentLine['column'] = [w[i].sequence(t[i]) for i in range(len(w))]
+            self.currentLine['range'] = r
 
-            fig = px.line(df, x=self.graphValues[radio]['description'], y='AVG Damage', markers=True)
+            df = pd.DataFrame()
+            df[self.currentLine['axis']] = self.currentLine['range']
+            df[0] = self.currentLine['column']
+            i = 0
+            for line in self.savedLines:
+                if line['axis'] == self.currentLine['axis'] and line['range'] == self.currentLine['range']:
+                    i += 1
+                    df[i] = line['column']
+
+            fig = px.line(df, x=self.currentLine['axis'], y=df.columns, markers=True)
             fig.update_yaxes(range=[0, None])
 
             return fig
+
+        @callback(
+            Input('simple-graph-btn-save', 'n_clicks')
+        )
+        def save_line(n):
+            if n:
+                self.savedLines.append(copy.deepcopy(self.currentLine))
+
+        @callback(
+            Input('simple-graph-btn-clear', 'n_clicks')
+        )
+        def clear_save(n):
+            if n:
+                self.savedLines.clear()
