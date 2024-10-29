@@ -110,6 +110,6 @@ class SimpleGraph(AbstractLayout):
             df['AVG Damage'] = [w[i].sequence(t[i]) for i in range(len(w))]
 
             fig = px.line(df, x=self.graphValues[radio]['description'], y='AVG Damage', markers=True)
-            fig.update_yaxes(range=[0, 1])
+            fig.update_yaxes(range=[0, None])
 
             return fig
