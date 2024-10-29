@@ -16,4 +16,7 @@ layout.buildLayout()
 layout.buildCallbacks()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port='8000')
+    if os.environ.get('CONTAINER', False):
+        app.run(debug=True, host='0.0.0.0', port='8000')
+    else:
+        app.run(debug=True, host='127.0.0.1', port='8050')
