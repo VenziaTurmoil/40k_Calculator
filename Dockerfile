@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 
 COPY . ./
 
-CMD ["python","./src/app.py"]
+CMD gunicorn -b 0.0.0.0:80 app:server
