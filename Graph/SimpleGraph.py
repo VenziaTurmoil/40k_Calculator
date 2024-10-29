@@ -7,68 +7,61 @@ from Model.Weapon import Weapon, options_list
 from Model.Target import Target
 
 class SimpleGraph(AbstractLayout):
-    
+
     def __init__(self):
         super(AbstractLayout, self).__init__()
         self.id = 'simple-graph'
-        
+        self.weaponValues = {
+            'A' :  { 'min':1, 'max':10, 'value':4, 'description':'Attacks'},
+            'Sk' : { 'min':2, 'max':6,  'value':3, 'description':'Weapon Skill' },
+            'S' :  { 'min':1, 'max':20, 'value':4, 'description':'Strength' },
+            'AP' : { 'min':0, 'max':4,  'value':1, 'description':'Armor Penetration' },
+            'D' :  { 'min':1, 'max':8,  'value':1, 'description':'Damage' },
+        }
+        self.targetValues = {
+            'T' :  { 'min':1, 'max':12, 'value':5, 'description':'Toughness' },
+            'Sv' : { 'min':1, 'max':7,  'value':4, 'description':'Save' },
+            'W' :  { 'min':1, 'max':12, 'value':3, 'description':'Wounds' },
+        }
+        self.graphValues = self.weaponValues | self.targetValues
+
     def buildLayout(self):
 
         return html.Div([
             dcc.Graph(id='simple-graph-fig'),
             dbc.Row([
+                dbc.Col([html.H3('Weapon Stats')] +
+                        [html.Div([
+                            html.P(weapon['description']),
+                            dcc.Slider(
+                                weapon['min'],
+                                weapon['max'],
+                                1,
+                                value = weapon['value'],
+                                id='simple-graph-input-{}'.format(key)
+                            )
+                        ]) for key, weapon in self.weaponValues.items()]
+                ),
+                dbc.Col([html.H3('Target Stats')] +
+                        [html.Div([
+                            html.P(target['description']),
+                            dcc.Slider(
+                                target['min'],
+                                target['max'],
+                                1,
+                                value = target['value'],
+                                id='simple-graph-input-{}'.format(key)
+                            )
+                        ]) for key, target in self.targetValues.items()]
+                ),
                 dbc.Col([
-                    html.H3('Weapon Stats'),
-                    html.P('Attacks'),
-                    dcc.Slider(1, 9, 1,
-                                value=3,
-                                id='simple-graph-input-A'),
-                    html.P('Weapon Skill'),
-                    dcc.Slider(2, 6, 1,
-                                value=3,
-                                id='simple-graph-input-Sk'),
-                    html.P('Strength'),
-                    dcc.Slider(1, 14, 1,
-                                value=4,
-                                id='simple-graph-input-S'),
-                    html.P('Armor Penetration'),
-                    dcc.Slider(0, 4, 1,
-                                value=1,
-                                id='simple-graph-input-AP'),
-                    html.P('Damage'),
-                    dcc.Slider(1, 8, 1,
-                                value=1,
-                                id='simple-graph-input-D')
-                ]),
-                dbc.Col([
-                    html.H3('Target Stats'),
-                    html.P('Toughness'),
-                    dcc.Slider(1, 12, 1,
-                                value=5,
-                                id='simple-graph-input-T'),
-                    html.P('Save'),
-                    dcc.Slider(1, 7, 1,
-                                value=4,
-                                id='simple-graph-input-Sv'),
-                    html.P('Wounds'),
-                    dcc.Slider(1, 12, 1,
-                                value=3,
-                                id='simple-graph-input-W')
-                ]),
-                dbc.Col([
-                    html.H3('Column to Freeze'),
+                    html.H3('x-ordinate'),
                     dcc.RadioItems(
                         options=[
-                            {'label': 'Attacks', 'value': '0'},
-                            {'label': 'Weapon Skill', 'value': '1'},    
-                            {'label': 'Strength', 'value': '2'},    
-                            {'label': 'Armor Penetration', 'value': '3'},    
-                            {'label': 'Damage', 'value': '4'},    
-                            {'label': 'Toughness', 'value': '5'},    
-                            {'label': 'Save', 'value': '6'},    
-                            {'label': 'Wounds', 'value': '7'} 
-                        ], 
-                        value='5',
+                                {'label': graphValues['description'], 'value': key}
+                                for key, graphValues in self.graphValues.items()
+                            ],
+                        value='T',
                         id='simple-graph-input-radio'
                     ),
                     html.H3('Additionnal options'),
@@ -81,39 +74,42 @@ class SimpleGraph(AbstractLayout):
                 ])
             ])
         ], id='simple-graph-div', style={'display': 'none'})
-    
+
     def buildCallbacks(self):
-        
+
         @callback(
             Output('simple-graph-fig', 'figure'),
-            Input('simple-graph-input-A', 'value'),
-            Input('simple-graph-input-Sk', 'value'),
-            Input('simple-graph-input-S', 'value'),
-            Input('simple-graph-input-AP', 'value'),
-            Input('simple-graph-input-D', 'value'),
-            Input('simple-graph-input-T', 'value'),
-            Input('simple-graph-input-Sv', 'value'),
-            Input('simple-graph-input-W', 'value'),
-            Input('simple-graph-input-radio', 'value'),
-            Input('simple-graph-input-dropdown', 'value')
+            [
+                Input('simple-graph-input-{}'.format(key), 'value')
+                for key in self.graphValues
+            ] + [
+                Input('simple-graph-input-radio', 'value'),
+                Input('simple-graph-input-dropdown', 'value')
+            ]
         )
-        def draw_simple_graph(A, Sk, S, AP, D, T, Sv, W, radio, options):
-            r = int(radio)
-            names = ['Attacks', 'Weapon Skill', 'Strength', 'Armor Penetration',
-                     'Damage', 'Toughness', 'Save', 'Wounds']
-            stats = [A, Sk, S, AP, D, T, Sv, W]
-            ranges = [range(1, 10), range(2, 7), range(1, 15), range(0, 5),
-                      range(1, 9), range(1, 13), range(1, 8), range(1, 7)]
-        
+        def draw_simple_graph(*inputs):
+            radio = inputs[-2]
+            options = inputs[-1]
             w = []
             t = []
-            for i in ranges[r]:
-                stats[r] = i
-                w.append(Weapon(stats[0], stats[1], stats[2], stats[3], stats[4], options))
-                t.append(Target(stats[5], stats[6], stats[7], 0))
-            
+            r = range(self.graphValues[radio]['min'], self.graphValues[radio]['max'] + 1)
+
+            i = 0
+            stats = {}
+            for key in self.graphValues:
+                stats[key] = inputs[i]
+                i += 1
+
+            for i in r:
+                stats[radio] = i
+                w.append(Weapon(stats['A'], stats['Sk'], stats['S'], stats['AP'], stats['D'], options))
+                t.append(Target(stats['T'], stats['Sv'], stats['W'], 0))
+
             df = pd.DataFrame()
-            df[names[r]] = ranges[r]
+            df[self.graphValues[radio]['description']] = r
             df['AVG Damage'] = [w[i].sequence(t[i]) for i in range(len(w))]
-                
-            return px.line(df, x=names[r], y='AVG Damage', markers=True)
+
+            fig = px.line(df, x=self.graphValues[radio]['description'], y='AVG Damage', markers=True)
+            fig.update_yaxes(range=[0, 1])
+
+            return fig

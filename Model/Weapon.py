@@ -1,6 +1,6 @@
-options_list = ['1 Hits RR', 'Hits RR', 
-                     '1 Wounds RR', 'Wounds RR']
-# Lethal hits, Dev wounds...
+options_list = ['1 Hits RR', 'Hits RR',
+                '1 Wounds RR', 'Wounds RR',
+                'Lethal Hits', 'Dev Wounds', 'Sustained Hits']
 
 class Weapon:
 
@@ -37,7 +37,7 @@ class Weapon:
             p = 5/6
         else:
             p = 4/6
-            
+
         if 'Wounds RR' in self.options:
             return 2*p - p**2
         elif '1 Wounds RR' in self.options:
@@ -52,8 +52,15 @@ class Weapon:
         return min(self.D, target.W)
 
     def sequence(self, target):
-        return (self.attacks(target)
-            * self.hit(target)
-            * self.wound(target)
-            * self.pierce(target)
-            * self.damage(target))
+        attacks = self.attacks(target)
+        autohits = attacks/6 if 'Sustained Hits' in self.options else 0
+        hits = attacks*(self.hit(target))
+        autowounds = attacks/6 if 'Lethal Hits' in self.options else 0
+        hits = hits - autowounds
+        autopierces = (hits + autohits)/6 if 'Dev Wounds' in self.options else 0
+        wounds = (hits + autohits)*self.wound(target)
+        wounds = wounds - autopierces
+        pierces = (wounds + autowounds)*self.pierce(target)
+        dmg = (pierces + autopierces)*self.damage(target)
+
+        return dmg
