@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 from Layout.AbstractLayout import AbstractLayout
 
 class MenuLayout(AbstractLayout):
-    
+
     def buildLayout(self):
 
         return html.Div([
@@ -14,25 +14,38 @@ class MenuLayout(AbstractLayout):
                 color="primary",
                 n_clicks=0,
             ),
-            dbc.Collapse(
-                dbc.Card([
-                    dbc.CardBody([
-                        html.H4("Basic Graph", className="card-title"),
-                        html.P(
-                            "Basic Graph with Manual configuration",
-                            className="card-text",
-                        ),
-                        dbc.Button("Go to Basic Graph", color="primary",
-                                   id = 'menu-simple-graph-btn'),
-                    ]),
-                ], style={'width': '18rem'}),
-                id="menu-collapse",
-                is_open=False,
+            dbc.Collapse([
+                dbc.Row([
+                    dbc.Card([
+                        dbc.CardBody([
+                            html.H4("Basic Graph", className="card-title"),
+                            html.P(
+                                "Basic Graph with Manual configuration",
+                                className="card-text",
+                            ),
+                            dbc.Button("Go to Basic Graph", color="primary",
+                                    id = 'menu-simple-graph-btn'),
+                        ]),
+                    ], style={'width': '18rem'}),
+                    dbc.Card([
+                        dbc.CardBody([
+                            html.H4("3D Graph", className="card-title"),
+                            html.P(
+                                "Simple 3D Graph with Manual configuration",
+                                className="card-text",
+                            ),
+                            dbc.Button("Go to 3D Graph", color="primary",
+                                    id = 'menu-3d-graph-btn'),
+                        ]),
+                    ], style={'width': '18rem'}),
+                ])
+            ], id="menu-collapse",
+               is_open=False,
             ),
         ], id='menu-navigation')
-    
+
     def buildCallbacks(self):
-        
+
         @callback(
             Output("menu-collapse", "is_open"),
             Output("menu-btn", "children"),
