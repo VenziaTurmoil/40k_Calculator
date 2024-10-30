@@ -2,7 +2,7 @@ from dash import html, dcc, callback, Output, Input
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
+import numpy as np
 import copy
 from Layout.AbstractLayout import AbstractLayout
 from Model.Weapon import Weapon, options_list
@@ -27,12 +27,22 @@ class ThreeDGraph(AbstractLayout):
         }
         self.graphValues = self.weaponValues | self.targetValues
         self.currentSurface = {'axis': None, 'data': None, 'range': None}
-        self.savedSurfaces = []
+        self.savedSurface = {'axis': None, 'data': None, 'range': None}
 
     def buildLayout(self):
 
         return html.Div([
-            dcc.Graph(id='3d-graph-fig'),
+            dbc.Row([
+                dbc.Col([
+                    dcc.Graph(id='3d-graph-fig')
+                ], id='3d-graph-graph-column-1', width=4),
+                dbc.Col([
+                    dcc.Graph(id='3d-graph-fig-compare')
+                ], id='3d-graph-graph-column-2', width=4),
+                dbc.Col([
+                    dcc.Graph(id='3d-graph-fig-ratio')
+                ], id='3d-graph-graph-column-3', width=4)
+            ]),
             dbc.Row([
                 dbc.Col([html.H3('Weapon Stats')] +
                         [html.Div([
@@ -112,6 +122,8 @@ class ThreeDGraph(AbstractLayout):
 
         @callback(
             Output('3d-graph-fig', 'figure'),
+            Output('3d-graph-fig-compare', 'figure'),
+            Output('3d-graph-fig-ratio', 'figure'),
             [
                 Input('3d-graph-input-{}'.format(key), 'value')
                 for key in self.graphValues
@@ -120,15 +132,15 @@ class ThreeDGraph(AbstractLayout):
                 Input('3d-graph-input-dropdown', 'value')
             ]
         )
-        def draw_3d_graph(*inputs):
+        def draw_graphs(*inputs):
             checklist = inputs[-2]
             options = inputs[-1]
             w = []
             t = []
-            r = [
-                    range(self.graphValues[checklist[0]]['min'], self.graphValues[checklist[0]]['max'] + 1),
-                    range(self.graphValues[checklist[1]]['min'], self.graphValues[checklist[1]]['max'] + 1),
-            ]
+            r = {
+                'x' : np.array(range(self.graphValues[checklist[0]]['min'], self.graphValues[checklist[0]]['max'] + 1)),
+                'y' : np.array(range(self.graphValues[checklist[1]]['min'], self.graphValues[checklist[1]]['max'] + 1)),
+            }
 
             i = 0
             stats = {}
@@ -137,13 +149,13 @@ class ThreeDGraph(AbstractLayout):
                 i += 1
 
             k = -1
-            for i in r[0]:
+            for i in r['y']:
                 k += 1
                 w.append([])
                 t.append([])
-                for j in r[1]:
-                    stats[checklist[0]] = i
-                    stats[checklist[1]] = j
+                for j in r['x']:
+                    stats[checklist[1]] = i
+                    stats[checklist[0]] = j
                     w[k].append(Weapon(stats['A'], stats['Sk'], stats['S'], stats['AP'], stats['D'], options))
                     t[k].append(Target(stats['T'], stats['Sv'], stats['W'], 0))
 
@@ -151,19 +163,25 @@ class ThreeDGraph(AbstractLayout):
                 'x' : self.graphValues[checklist[0]]['description'],
                 'y' : self.graphValues[checklist[1]]['description'],
             }
-            self.currentSurface['data'] = [[w[i][j].sequence(t[i][j]) for j in range(len(w[i]))] for i in range(len(w))]
+            self.currentSurface['data'] = np.array([[w[i][j].sequence(t[i][j]) for j in range(len(w[i]))] for i in range(len(w))])
             self.currentSurface['range'] = r
 
-            active_surfaces = []
-            for surface in self.savedSurfaces:
-                if self.currentSurface['axis'] == surface['axis']:
-                    active_surfaces.append(surface)
+            data = [go.Surface(
+                x = self.currentSurface['range']['x'],
+                y = self.currentSurface['range']['y'],
+                z = self.currentSurface['data'],
+                opacity=0.7)]
+            if self.savedSurface:
+                if self.savedSurface['axis'] == self.currentSurface['axis']:
+                    data.append(go.Surface(
+                        x = self.savedSurface['range']['x'],
+                        y = self.savedSurface['range']['y'],
+                        z=self.savedSurface['data'],
+                        showscale=False,
+                        opacity=0.5))
+            graph = go.Figure(data=data)
 
-            fig = go.Figure(data = [
-                go.Surface(z=surface['data'], showscale=False, opacity=0.75) for surface in active_surfaces
-            ] + [go.Surface(z=self.currentSurface['data'], opacity=0.8)])
-
-            fig.update_layout(
+            graph.update_layout(
                 scene = dict(
                     xaxis_title = self.currentSurface['axis']['x'],
                     yaxis_title = self.currentSurface['axis']['y'],
@@ -172,18 +190,57 @@ class ThreeDGraph(AbstractLayout):
                 )
             )
 
-            return fig
+            compare = {}
+            if self.savedSurface:
+                if self.savedSurface['axis'] == self.currentSurface['axis']:
+                    data = [go.Surface(
+                        x = self.currentSurface['range']['x'],
+                        y = self.currentSurface['range']['y'],
+                        z = self.currentSurface['data'] - self.savedSurface['data'],
+                        opacity=0.7)]
+                    compare = go.Figure(data=data)
+
+                    compare.update_layout(
+                        scene = dict(
+                            xaxis_title = self.currentSurface['axis']['x'],
+                            yaxis_title = self.currentSurface['axis']['y'],
+                            zaxis_title = 'AVG Damage Difference'
+                        )
+                    )
+
+            ratio = {}
+            if self.savedSurface:
+                if self.savedSurface['axis'] == self.currentSurface['axis']:
+                    z = self.currentSurface['data'] / self.savedSurface['data']
+                    z[0][0] += 0.0001 #fixs strange cases were graph dissipates
+                    data = [go.Surface(
+                        x = self.currentSurface['range']['x'],
+                        y = self.currentSurface['range']['y'],
+                        z = z,
+                        opacity=0.7)]
+                    ratio = go.Figure(data=data)
+
+                    ratio.update_layout(
+                        scene = dict(
+                            xaxis_title = self.currentSurface['axis']['x'],
+                            yaxis_title = self.currentSurface['axis']['y'],
+                            zaxis = dict(range=[np.min(z)-0.1, np.max(z)+0.1]),
+                            zaxis_title = 'AVG Damage Ratio'
+                        )
+                    )
+            return graph, compare, ratio
 
         @callback(
-            Input('3d-graph-btn-save', 'n_clicks')
+            Input('3d-graph-btn-save', 'n_clicks'),
+            prevent_initial_call=True,
         )
-        def save_line(n):
+        def add_compare(n):
             if n:
-                self.savedSurfaces.append(copy.deepcopy(self.currentSurface))
+                self.savedSurface = copy.deepcopy(self.currentSurface)
 
         @callback(
             Input('3d-graph-btn-clear', 'n_clicks')
         )
-        def clear_save(n):
+        def clear_compare(n):
             if n:
-                self.savedSurfaces.clear()
+                self.savedSurface = None
