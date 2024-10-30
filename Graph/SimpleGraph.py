@@ -126,7 +126,7 @@ class SimpleGraph(AbstractLayout):
                     df[i] = line['column']
 
             fig = px.line(df, x=self.currentLine['axis'], y=df.columns, markers=True)
-            fig.update_yaxes(range=[0, None])
+            fig.update_yaxes(title='AVG Damage', range=[0, None])
 
             return fig
 
