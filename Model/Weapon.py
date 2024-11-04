@@ -46,7 +46,7 @@ class Weapon:
             return p
 
     def pierce(self, target):
-        return min((target.Sv + self.AP -1)/6, 1)
+        return min((target.Sv + self.AP -1)/6, (target.Inv -1)/6, 1)
 
     def damage(self, target):
         return min(self.D, target.W)
