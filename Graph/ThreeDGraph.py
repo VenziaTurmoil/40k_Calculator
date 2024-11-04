@@ -22,7 +22,8 @@ class ThreeDGraph(AbstractLayout):
         }
         self.targetValues = {
             'T' :  { 'min':1, 'max':12, 'value':5, 'description':'Toughness' },
-            'Sv' : { 'min':1, 'max':7,  'value':4, 'description':'Save' },
+            'Sv' : { 'min':2, 'max':7,  'value':4, 'description':'Save' },
+            'Inv' : { 'min':2, 'max':7,  'value':6, 'description':'Invul' },
             'W' :  { 'min':1, 'max':12, 'value':3, 'description':'Wounds' },
         }
         self.graphValues = self.weaponValues | self.targetValues
@@ -157,7 +158,7 @@ class ThreeDGraph(AbstractLayout):
                     stats[checklist[1]] = i
                     stats[checklist[0]] = j
                     w[k].append(Weapon(stats['A'], stats['Sk'], stats['S'], stats['AP'], stats['D'], options))
-                    t[k].append(Target(stats['T'], stats['Sv'], stats['W'], 0))
+                    t[k].append(Target(stats['T'], stats['Sv'], stats['Inv'], stats['W'], 0))
 
             self.currentSurface['axis'] = {
                 'x' : self.graphValues[checklist[0]]['description'],
@@ -229,6 +230,23 @@ class ThreeDGraph(AbstractLayout):
                         )
                     )
             return graph, compare, ratio
+
+        @callback(
+            [
+                Output('3d-graph-input-{}'.format(key), 'disabled')
+                for key in self.graphValues
+            ],
+            Input('3d-graph-input-true-checklist', 'value'),
+        )
+        def disable_sliders(value):
+            #absolument immonde
+            res = [False for key in self.graphValues]
+            k = 0
+            for key in self.graphValues:
+                if key in value:
+                    res[k] = True
+                k += 1
+            return res
 
         @callback(
             Input('3d-graph-btn-save', 'n_clicks'),
